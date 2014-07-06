@@ -40,7 +40,6 @@
 
 using namespace std;
 
-const glm::vec3 DEFAULT_UP_DIRECTION(0.0f, 1.0f, 0.0f);
 const float YAW_SPEED = 500.0f;   // degrees/sec
 const float PITCH_SPEED = 100.0f; // degrees/sec
 const float COLLISION_RADIUS_SCALAR = 1.2f; // pertains to avatar-to-avatar collisions
@@ -588,9 +587,9 @@ AnimationDetails MyAvatar::getAnimationDetails(const QString& url) {
 void MyAvatar::saveData(QSettings* settings) {
     settings->beginGroup("Avatar");
 
-    settings->setValue("bodyYaw", _bodyYaw);
-    settings->setValue("bodyPitch", _bodyPitch);
-    settings->setValue("bodyRoll", _bodyRoll);
+    settings->setValue("bodyYaw", getBodyYaw());
+    settings->setValue("bodyPitch", getBodyPitch());
+    settings->setValue("bodyRoll", getBodyRoll());
 
     settings->setValue("headPitch", getHead()->getBasePitch());
 
@@ -649,9 +648,10 @@ void MyAvatar::loadData(QSettings* settings) {
     settings->beginGroup("Avatar");
 
     // in case settings is corrupt or missing loadSetting() will check for NaN
-    _bodyYaw = loadSetting(settings, "bodyYaw", 0.0f);
-    _bodyPitch = loadSetting(settings, "bodyPitch", 0.0f);
-    _bodyRoll = loadSetting(settings, "bodyRoll", 0.0f);
+    float bodyYaw = loadSetting(settings, "bodyYaw", 0.0f);
+    float bodyPitch = loadSetting(settings, "bodyPitch", 0.0f);
+    float bodyRoll = loadSetting(settings, "bodyRoll", 0.0f);
+    setOrientation(bodyYaw, bodyPitch, bodyRoll);
 
     getHead()->setBasePitch(loadSetting(settings, "headPitch", 0.0f));
 

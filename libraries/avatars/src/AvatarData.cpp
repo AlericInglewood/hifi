@@ -36,9 +36,7 @@ using namespace std;
 AvatarData::AvatarData() :
     _sessionUUID(),
     _handPosition(0,0,0),
-    _bodyYaw(-90.f),
-    _bodyPitch(0.0f),
-    _bodyRoll(0.0f),
+    _orientation(0.707106769f, 0.f, -0.707106769f, 0.f),
     _targetScale(1.0f),
     _handState(0),
     _keyState(NO_KEY_DOWN),
@@ -92,9 +90,10 @@ QByteArray AvatarData::toByteArray() {
     destinationBuffer += sizeof(_position);
     
     // Body rotation (NOTE: This needs to become a quaternion to save two bytes)
-    destinationBuffer += packFloatAngleToTwoByte(destinationBuffer, _bodyYaw);
-    destinationBuffer += packFloatAngleToTwoByte(destinationBuffer, _bodyPitch);
-    destinationBuffer += packFloatAngleToTwoByte(destinationBuffer, _bodyRoll);
+    glm::vec3 eulerAngles = glm::degrees(safeEulerAngles(_orientation));
+    destinationBuffer += packFloatAngleToTwoByte(destinationBuffer, eulerAngles.y);     // yaw
+    destinationBuffer += packFloatAngleToTwoByte(destinationBuffer, eulerAngles.x);     // pitch
+    destinationBuffer += packFloatAngleToTwoByte(destinationBuffer, eulerAngles.z);     // roll
 
     // Body scale
     destinationBuffer += packFloatRatioToTwoByte(destinationBuffer, _targetScale);
@@ -271,10 +270,8 @@ int AvatarData::parseDataAtOffset(const QByteArray& packet, int offset) {
             }
             return maxAvailableSize;
         }
-        _bodyYaw = yaw;
-        _bodyPitch = pitch;
-        _bodyRoll = roll;
-        
+        setOrientation(yaw, pitch, roll);
+
         // scale
         float scale;
         sourceBuffer += unpackFloatRatioFromTwoByte(sourceBuffer, scale);
@@ -807,11 +804,37 @@ void AvatarData::setClampedTargetScale(float targetScale) {
     qDebug() << "Changed scale to " << _targetScale;
 }
 
-void AvatarData::setOrientation(const glm::quat& orientation) {
-    glm::vec3 eulerAngles = glm::degrees(safeEulerAngles(orientation));
-    _bodyPitch = eulerAngles.x;
-    _bodyYaw = eulerAngles.y;
-    _bodyRoll = eulerAngles.z;
+void AvatarData::setBodyPitch(float bodyPitch) {
+    glm::vec3 eulerAngles = safeEulerAngles(_orientation);
+    eulerAngles.x = glm::radians(bodyPitch);
+    _orientation = glm::quat(eulerAngles);
+}
+
+void AvatarData::setBodyYaw(float bodyYaw) {
+    glm::vec3 eulerAngles = safeEulerAngles(_orientation);
+    eulerAngles.y = glm::radians(bodyYaw);
+    _orientation = glm::quat(eulerAngles);
+}
+
+void AvatarData::setBodyRoll(float bodyRoll) {
+    glm::vec3 eulerAngles = safeEulerAngles(_orientation);
+    eulerAngles.z = glm::radians(bodyRoll);
+    _orientation = glm::quat(eulerAngles);
+}
+
+float AvatarData::getBodyPitch() const {
+    glm::vec3 eulerAngles = safeEulerAngles(_orientation);
+    return glm::degrees(eulerAngles.x);
+}
+
+float AvatarData::getBodyYaw() const {
+    glm::vec3 eulerAngles = safeEulerAngles(_orientation);
+    return glm::degrees(eulerAngles.y);
+}
+
+float AvatarData::getBodyRoll() const {
+    glm::vec3 eulerAngles = safeEulerAngles(_orientation);
+    return glm::degrees(eulerAngles.z);
 }
 
 void AvatarData::sendIdentityPacket() {

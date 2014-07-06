@@ -34,7 +34,7 @@
 
 using namespace std;
 
-const glm::vec3 DEFAULT_UP_DIRECTION(0.0f, 1.0f, 0.0f);
+const glm::vec3 DEFAULT_UP_DIRECTION = IDENTITY_UP;     // This *must* be IDENTITY_UP.
 const int   NUM_BODY_CONE_SIDES = 9;
 const float CHAT_MESSAGE_SCALE = 0.0015f;
 const float CHAT_MESSAGE_HEIGHT = 0.1f;

@@ -156,15 +156,16 @@ public:
     virtual int parseDataAtOffset(const QByteArray& packet, int offset);
 
     //  Body Rotation (degrees)
-    float getBodyYaw() const { return _bodyYaw; }
-    void setBodyYaw(float bodyYaw) { _bodyYaw = bodyYaw; }
-    float getBodyPitch() const { return _bodyPitch; }
-    void setBodyPitch(float bodyPitch) { _bodyPitch = bodyPitch; }
-    float getBodyRoll() const { return _bodyRoll; }
-    void setBodyRoll(float bodyRoll) { _bodyRoll = bodyRoll; }
+    float getBodyYaw() const;
+    void setBodyYaw(float bodyYaw);
+    float getBodyPitch() const;
+    void setBodyPitch(float bodyPitch);
+    float getBodyRoll() const;
+    void setBodyRoll(float bodyRoll);
 
-    glm::quat getOrientation() const { return glm::quat(glm::radians(glm::vec3(_bodyPitch, _bodyYaw, _bodyRoll))); }
-    void setOrientation(const glm::quat& orientation);
+    const glm::quat& getOrientation() const { return _orientation; }
+    void setOrientation(const glm::quat& orientation) { _orientation = orientation; }
+    void setOrientation(float yaw, float pitch, float roll) { _orientation = glm::quat(glm::radians(glm::vec3(pitch, yaw, roll))); }
 
     glm::quat getHeadOrientation() const { return _headData->getOrientation(); }
     void setHeadOrientation(const glm::quat& orientation) { _headData->setOrientation(orientation); }
@@ -281,9 +282,7 @@ protected:
     glm::vec3 _handPosition;
 
     //  Body rotation
-    float _bodyYaw;     // degrees
-    float _bodyPitch;   // degrees
-    float _bodyRoll;    // degrees
+    glm::quat _orientation;
 
     // Body scale
     float _targetScale;
