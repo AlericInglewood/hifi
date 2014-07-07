@@ -62,6 +62,7 @@ public:
     const glm::vec3& getMouseRayDirection() const { return _mouseRayDirection; }
     glm::vec3 getGravity() const { return _gravity; }
     glm::vec3 getUprightHeadPosition() const;
+    glm::vec3 getHeadPosition() const;
     bool getShouldRenderLocally() const { return _shouldRender; }
     
     const QList<AnimationHandlePointer>& getAnimationHandles() const { return _animationHandles; }

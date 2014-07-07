@@ -827,6 +827,10 @@ glm::vec3 MyAvatar::getUprightHeadPosition() const {
     return _position + getWorldAlignedOrientation() * glm::vec3(0.0f, getPelvisToHeadLength(), 0.0f);
 }
 
+glm::vec3 MyAvatar::getHeadPosition() const {
+    return _position + getOrientation() * glm::vec3(0.0f, getPelvisToHeadLength(), 0.0f);
+}
+
 const float JOINT_PRIORITY = 2.0f;
 
 void MyAvatar::setJointData(int index, const glm::quat& rotation) {
