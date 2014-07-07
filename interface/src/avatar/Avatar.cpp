@@ -345,20 +345,69 @@ void Avatar::render(const glm::vec3& cameraPosition, RenderMode renderMode) {
     }
 }
 
+// Returns the _shortest_ rotation between currentUp and _worldUpDirection.
 glm::quat Avatar::computeRotationFromBodyToWorldUp(float proportion) const {
     glm::quat orientation = getOrientation();
     glm::vec3 currentUp = orientation * IDENTITY_UP;
-    float angle = acosf(glm::clamp(glm::dot(currentUp, _worldUpDirection), -1.0f, 1.0f));
-    if (angle < EPSILON) {
+    // If currentUp is (nearly) the same as _worldUpDirection then we can simple return the identity.
+    // This covers 99.9% of the cases, so we use that fact to speed up things.
+    glm::vec3 delta = currentUp - _worldUpDirection;
+    // Use the manhattan metric for the distance (cause that's faster).
+    // The idea is that if sqrt(dx^2 + dy^2 + dz^2) < EPSILON, then each of
+    // dx, dy and dz must be less than EPSILON and thus the following
+    // will be true as well.
+    if (delta.x + delta.y + delta.z < 3 * EPSILON) {
         return glm::quat();
     }
+
+    // The rest is not nearly executed as often.
+    // However, EPSILON is very small and the distance being larger still doesn't guarantee acceptable
+    // round off errors for the computation of glm::normalize(glm::cross(currentUp, _worldUpDirection))
+    // as the length of the cross product approaches zero.
+    //
+    // Define our own epsilon  below which we can approximate the cross product linearly.
+    // Note that for small x, cos(x) = 1 - 0.5 x^2, so that this value corresponds to 0.01414 rad,
+    // or roughly 0.8 degrees.
+    float const epsilon = 0.0001f;
+
+    // Calculate the cosine of the angle between currentUp and _worldUpDirection.
+    // Note that a clamp is not necessary, because the code below can deal with
+    // a value larger than 1, or smaller than -1, due to round of errors.
+    float cosTheta = glm::dot(currentUp, _worldUpDirection);
+
+    // Next we'll calculate the actual angle and rotation axis for the quaternion that has to be returned.
     glm::vec3 axis;
-    if (angle > 179.99f * RADIANS_PER_DEGREE) { // 180 degree rotation; must use another axis
-        axis = orientation * IDENTITY_RIGHT;
+    float angle;
+
+    bool opposite_vectors = 1.0f + cosTheta < epsilon;
+    if (opposite_vectors || 1.0f - cosTheta < epsilon) {        // (Nearly) parallel vectors.
+        if (opposite_vectors) {
+            // Negate _worldUpDirection and recalculate delta;
+            delta = currentUp + _worldUpDirection;
+        }
+        if (opposite_vectors && delta.z + delta.y + delta.z < 3 * EPSILON) {
+            // Truely opposite vectors; must use arbitrary axis.
+            axis = orientation * IDENTITY_RIGHT;
+            angle = M_PI;
+        } else {
+            // Calculate a normalized vector that points from currentUp to _worldUpDirection.
+            // Note that this is possible because the length is known to be larger than sqrt(3) * EPSILON.
+            glm::vec3 direction = glm::normalize(delta);
+            // Finally calulate angle and axis by linear approximation.
+            axis = glm::normalize(glm::cross(currentUp, direction));
+            angle = delta.length() * proportion;
+            if (opposite_vectors) {
+                axis = -axis;
+                angle = M_PI - angle;
+            }
+        }
     } else {
+        // The vectors are not parallel; floating point errors are not an issue.
         axis = glm::normalize(glm::cross(currentUp, _worldUpDirection));
+        angle = acosf(cosTheta) * proportion;
     }
-    return glm::angleAxis(angle * proportion, axis);
+
+    return glm::angleAxis(angle, axis);
 }
 
 void Avatar::renderBody(RenderMode renderMode, float glowLevel) {
