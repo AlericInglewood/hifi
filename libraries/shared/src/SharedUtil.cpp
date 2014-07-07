@@ -82,6 +82,7 @@ bool shouldDo(float desiredInterval, float deltaTime) {
 //  Safe version of glm::mix; based on the code in Nick Bobick's article,
 //  http://www.gamasutra.com/features/19980703/quaternions_01.htm (via Clyde,
 //  https://github.com/threerings/clyde/blob/master/src/main/java/com/threerings/math/Quaternion.java)
+//  Another article that describes this can be found at http://3dgep.com/?p=1815#Fractional_Difference_of_Quaternions
 glm::quat safeMix(const glm::quat& q1, const glm::quat& q2, float proportion) {
     float cosa = q1.x * q2.x + q1.y * q2.y + q1.z * q2.z + q1.w * q2.w;
     float ox = q2.x, oy = q2.y, oz = q2.z, ow = q2.w, s0, s1;
