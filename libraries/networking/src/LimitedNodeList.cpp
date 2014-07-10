@@ -184,8 +184,8 @@ bool LimitedNodeList::packetVersionAndHashMatch(const QByteArray& packet) {
                     << uuidFromPacketHeader(packet);
             }
         } else {
-            qDebug() << "Packet of type" << checkType << "received from unknown node with UUID"
-                << uuidFromPacketHeader(packet);
+           // qDebug() << "Packet of type" << checkType << "received from unknown node with UUID"
+           //     << uuidFromPacketHeader(packet);
         }
     } else {
         return true;

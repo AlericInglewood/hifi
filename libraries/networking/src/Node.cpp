@@ -101,7 +101,7 @@ void Node::activateLocalSocket() {
 }
 
 void Node::activatePublicSocket() {
-    qDebug() << "Activating public socket for node" << *this;
+    //qDebug() << "Activating public socket for node" << *this;
     _activeSocket = &_publicSocket;
 }
 
